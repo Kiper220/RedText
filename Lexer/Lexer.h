@@ -8,6 +8,7 @@
 /// Using Pattern Visitor
 #include <string>
 #include <memory>
+#include <vector>
 #include <list>
 
 using namespace std;
