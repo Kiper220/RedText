@@ -5,7 +5,6 @@
 #include "Lexer.h"
 #include <iostream>
 #include <set>
-#include "string.h"
 
 namespace RT{
     namespace Lexer{
@@ -91,24 +90,24 @@ namespace RT{
             return iterator+i;
         }
 
-        LexElement::LexElement(string::iterator iterator_begin, string::iterator iterator_end): iterator_begin(move(iterator_begin)), iterator_end(move(iterator_end)) {}
-        void LexElement::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector) {
+        LexerInstance::LexerInstance(string::iterator iterator_begin, string::iterator iterator_end): iterator_begin(move(iterator_begin)), iterator_end(move(iterator_end)) {}
+        void LexerInstance::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector) {
             this->visitorList = move(visitorVector);
         }
-        Lexer::Lexer(string::iterator iterator_begin, string::iterator iterator_end): LexElement(iterator_begin, iterator_end) {}
-        void Lexer::accept(AnalyzerVisitor& visitor) {
+        STDLexer::STDLexer(string::iterator iterator_begin, string::iterator iterator_end): LexerInstance(iterator_begin, iterator_end) {}
+        void STDLexer::accept(AnalyzerVisitor& visitor) {
             if(this->iterator_begin < this->iterator_end){
                 visitor.visitLexer(*this);
             }
         }
-        void Lexer::acceptAll() {
+        void STDLexer::acceptAll() {
             int Line = 0;
             while(this->iterator_begin < this->iterator_end){
                 bool successful = false;
-                for(auto visitor: this->visitorList){
+                for(const auto& visitor: this->visitorList){
                     while((*iterator_begin == ' ' || *iterator_begin == '\n' || *iterator_begin == '\t') && *iterator_begin != '\0'){
                         if(*iterator_begin == '\n') {
-                            this->lexerOutput += "[NEWLINE]\n";
+                            this->addLexerOutput(NEWLINE, "");
                             Line++;
                         }
                         iterator_begin++;
@@ -124,33 +123,83 @@ namespace RT{
                     exit(-11);
                 }
             }
-            this->lexerOutput += "[EOF]";
+            this->addLexerOutput(EOC, "");
         }
-        void Lexer::addLexerOutput(string data) {
-            this->lexerOutput += data;
-        }
-
-        Lexer::operator string() {
-            return this->lexerOutput;
+        void STDLexer::addLexerOutput(LexiconType lexiconType, string lexicon){
+            this->lexicalData.emplace_back(lexiconType, lexicon);
         }
 
-        string::iterator& Lexer::begin() {
+        STDLexer::operator string() {
+            auto it = this->lexicalData.begin();
+            string returnData;
+
+            while(it != this->lexicalData.end()){
+                switch (it->first) {
+                    case INTEGER_LITERAL:
+                        returnData += "[IntegerLiteral, " + it->second + "]\n";
+                        break;
+                    case KEYWORD:
+                        returnData += "[KeyWord, " + it->second + "]\n";
+                        break;
+                    case SYMWORD:
+                        returnData += "[SymWord, \"" + it->second + "\"]\n";
+                        break;
+                    case STRING_LITERAL:
+                        returnData += "[StringLiteral, \"" + it->second + "\"]\n";
+                        break;
+                    case CHARACTER_LITERAL:
+                        returnData += "[CharacterLiteral, \'" + it->second + "\']\n";
+                        break;
+                    case HEX_STRING:
+                        returnData += "[HexString, \"" + it->second + "\"]\n";
+                        break;
+                    case WYSIWYG_STRING:
+                        returnData += "[WysiwygString, \"" + it->second + "\"]\n";
+                        break;
+                    case WYSIWYG_CHARACTER:
+                        returnData += "[WysiwygCharacter, \'" + it->second + "\']\n";
+                        break;
+                    case HEX_CHARACTER:
+                        returnData += "[HexCharacter, \'" + it->second + "\']\n";
+                        break;
+                    case OPERATOR:
+                        returnData += "[Operator, \"" + it->second + "\"]\n";
+                        break;
+                    case NEWLINE:
+                        returnData += "[NEWLINE]\n";
+                        break;
+                    case EOC:
+                        returnData += "[EOC]\n";
+                        break;
+                }
+                it++;
+            }
+            return returnData;
+        }
+        STDLexer::operator list<pair<LexiconType, string>>&() {
+            return this->lexicalData;
+        }
+
+        string::iterator& STDLexer::begin() {
             return this->iterator_begin;
         }
-        string::iterator& Lexer::end() {
+        string::iterator& STDLexer::end() {
             return this->iterator_end;
         }
 
-        bool IntegerLiteral::visitLexer(Lexer& lexer){
+        list<pair<LexiconType, string>>& STDLexer::getData(){
+            return this->lexicalData;
+        }
+
+        bool IntegerLiteral::visitLexer(STDLexer& lexer){
             if(*lexer.begin() >= '0' && *lexer.begin() <= '9' || *lexer.begin() == '-'){
-                string data = "[IntegerLiteral, ";
-                data += *lexer.begin();
+                string value;
 
                 int j = 1;
                 lexer.begin()++;
 
                 while (*lexer.begin() >= '0' && *lexer.begin() <= '9'){
-                    data += *lexer.begin();
+                    value += *lexer.begin();
 
                     j++;
                     lexer.begin()++;
@@ -159,22 +208,19 @@ namespace RT{
                     lexer.begin() -= j;
                     return false;
                 }
-                data += "]\n";
-                lexer.addLexerOutput(data);
+                lexer.addLexerOutput(KEYWORD, value);
                 return true;
             }
             return false;
         }
-        bool KeyWord::visitLexer(Lexer& lexer){
+        bool KeyWord::visitLexer(STDLexer& lexer){
             if((*lexer.begin() >= 'A' && *lexer.begin() <= 'Z') || (*lexer.begin() >= 'a' && *lexer.begin() <= 'z')) {
 
                 set<string>::iterator it;
                 it = KeyWords.find(string(lexer.begin(), getFirstName(lexer.begin())));
 
                 if (it != KeyWords.end()) {
-                    string data = "[KeyWord, \"" + *it + "\"]\n";
-
-                    lexer.addLexerOutput(data);
+                    lexer.addLexerOutput(KEYWORD, *it);
                     lexer.begin() += it->size();
                     return true;
                 }
@@ -188,21 +234,17 @@ namespace RT{
             (lexer.begin()[i] >= 'a' && lexer.begin()[i] <= 'z') ||
             (lexer.begin()[i] >= '0' && lexer.begin()[i] <= '9'); i++);
 
-            string data = "[SymWord, \"";
-            data.append(lexer.begin(), lexer.begin() + i);
-            data += "\"]\n";
-
-            lexer.addLexerOutput(data);
+            lexer.addLexerOutput(SYMWORD, string(lexer.begin(), lexer.begin() + i));
             lexer.begin() += i;
             return true;
         }
-        bool StringLiteral::visitLexer(Lexer& lexer){
+        bool StringLiteral::visitLexer(STDLexer& lexer){
             if(lexer.begin()[0] == '"'){
                 if(lexer.begin()[1] == '"'){
                     if(lexer.begin()[2] == '"')
                         return false;
 
-                    lexer.addLexerOutput("[StringLiteral, \"\"]\n");
+                    lexer.addLexerOutput(STRING_LITERAL, "");
                     lexer.begin() += 2;
                     return true;
                 }
@@ -212,17 +254,13 @@ namespace RT{
                 if(lexer.begin()[i] == '\n' || lexer.begin()[i] == '\0')
                     return false;
 
-                string data = "[StringLiteral, \"";
-                data.append(lexer.begin() + 1, lexer.begin() + i);
-                data += "\"]\n";
-
-                lexer.addLexerOutput(data);
+                lexer.addLexerOutput(STRING_LITERAL, string(lexer.begin() + 1, lexer.begin() + i));
                 lexer.begin() += i + 1;
                 return true;
             }
             return false;
         }
-        bool CharacterLiteral::visitLexer(Lexer& lexer){
+        bool CharacterLiteral::visitLexer(STDLexer& lexer){
             if(lexer.begin()[0] == '\''){
                 if(lexer.begin()[1] == '\'')
                     return false;
@@ -232,42 +270,39 @@ namespace RT{
                 if(lexer.begin()[i] == '\n' || lexer.begin()[i] == '\0')
                     return false;
 
-                string data = "[CharacterLiteral, '";
-                data.append(lexer.begin() + 1, lexer.begin() + i);
-                data += "']\n";
-
-                lexer.addLexerOutput(data);
                 lexer.begin() += i + 1;
+                lexer.addLexerOutput(CHARACTER_LITERAL, string(lexer.begin() + 1, lexer.begin() + i));
                 return true;
             }
             return false;
         }
-        bool WysiwygString::visitLexer(Lexer& lexer){
+        bool WysiwygString::visitLexer(STDLexer& lexer){
 
         }
-        bool WysiwygCharacter::visitLexer(Lexer& lexer){
+        bool WysiwygCharacter::visitLexer(STDLexer& lexer){
 
         }
-        bool HexString::visitLexer(Lexer& lexer){
+        bool HexString::visitLexer(STDLexer& lexer){
 
         }
-        bool HexCharacter::visitLexer(Lexer& lexer){
+        bool HexCharacter::visitLexer(STDLexer& lexer){
 
         }
-        bool Operator::visitLexer(Lexer& lexer){
+        bool Operator::visitLexer(STDLexer& lexer){
             if(!((*lexer.begin() >= 'A' && *lexer.begin() <= 'Z') ||
                (*lexer.begin() >= 'a' && *lexer.begin() <= 'z') ||
                (*lexer.begin() >= '0' && *lexer.begin() <= '9'))){
                 auto it = Operators.find(string(lexer.begin(), getFirstOperator(lexer.begin())));
                 if(it != Operators.end()){
-                    lexer.addLexerOutput(string("[Operator, \"") + *it + "\"]\n");
                     lexer.begin() += (*it).size();
+
+                    lexer.addLexerOutput(OPERATOR, *it);
                     return true;
                 }
             }
             return false;
         }
-        bool Comments::visitLexer(Lexer& lexer){
+        bool Comments::visitLexer(STDLexer& lexer){
             if(lexer.begin()[0] == '/' && lexer.begin()[1] == '/'){
                 int i = 0;
                 while(lexer.begin()[i] != '\n' && lexer.begin()[i] != '\0') i++;

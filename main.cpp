@@ -1,41 +1,43 @@
 #include <iostream>
 #include <string>
 #include <Lexer/Lexer.h>
+#include <Parser/Parser.h>
 
 using namespace std;
-using namespace RT::Lexer;
+using namespace RT;
 
 int main() {
     string code =
 
             "import io;\n"
-            "\n"
-            "int main(){\n"
-            "   int i = 0;\n"
-            "   scan >> i;\n"
-            "   if(i > 23){\n"
-            "      print << \"true\";\n"
-            "   }\n"
-            "   else print << \"false\";\n"
-            "   return 0;\n"
-            "}\n";
+            "import test;";
 
-    Lexer lexer(string::iterator(code.begin()), string::iterator(code.end()));
+    Lexer::STDLexer lexer(string::iterator(code.begin()), string::iterator(code.end()));
     lexer.setVisitorList(
             {
-                    shared_ptr<AnalyzerVisitor>(new IntegerLiteral),
-                    shared_ptr<AnalyzerVisitor>(new KeyWord),
-                    shared_ptr<AnalyzerVisitor>(new StringLiteral),
-                    shared_ptr<AnalyzerVisitor>(new CharacterLiteral),
-                    //shared_ptr<AnalyzerVisitor>(new HexString),
-                    //shared_ptr<AnalyzerVisitor>(new WysiwygString),
-                    //shared_ptr<AnalyzerVisitor>(new WysiwygCharacter),
-                    //shared_ptr<AnalyzerVisitor>(new HexCharacter),
-                    shared_ptr<AnalyzerVisitor>(new Operator),
-                    shared_ptr<AnalyzerVisitor>(new Comments),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::IntegerLiteral),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::KeyWord),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::StringLiteral),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::CharacterLiteral),
+                    //shared_ptr<Lexer::AnalyzerVisitor>(new HexString),
+                    //shared_ptr<Lexer::AnalyzerVisitor>(new WysiwygString),
+                    //shared_ptr<Lexer::AnalyzerVisitor>(new WysiwygCharacter),
+                    //shared_ptr<Lexer::AnalyzerVisitor>(new HexCharacter),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::Operator),
+                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::Comments),
             });
     lexer.acceptAll();
-    std::cout << "Code on lex:\n-----------------\n" << code << "-----------------\nLex code: \n-----------------\n" << (string)lexer << "\n-----------------";
+
+    Parser::STDParser parser(lexer.getData().begin(), lexer.getData().end());
+
+    parser.setVisitorList(
+                {
+                    shared_ptr<Parser::AnalyzerVisitor>(new Parser::ImportToken)
+                }
+            );
+    parser.acceptAll();
+
+    std::cout << (string)parser;
 
     return 0;
 }
