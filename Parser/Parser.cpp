@@ -7,33 +7,40 @@
 
 namespace RT{
     namespace Parser{
-        ParserInstance::ParserInstance(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end): iterator_begin(iterator_begin), iterator_end(iterator_end){}
-        void ParserInstance::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector){
+        ParserInterface::ParserInterface(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end): iterator_begin(iterator_begin), iterator_end(iterator_end){}
+        void ParserInterface::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector){
             this->visitorList = std::move(visitorVector);
         }
 
-        STDParser::STDParser(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end): ParserInstance(iterator_begin, iterator_end){}
+        STDParser::STDParser(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end): ParserInterface(iterator_begin, iterator_end){}
 
-        void STDParser::acceptAll(){
-            int Line = 0;
+        pair<nlohmann::json, int> STDParser::acceptAllReturn() {
+            pair<nlohmann::json, int> Return;
             while(this->iterator_begin->first != Lexer::EOC && this->iterator_begin != this->iterator_end){
                 while(iterator_begin->first == Lexer::NEWLINE || iterator_begin->first == Lexer::EOC ) {
-                    if(iterator_begin->first == Lexer::NEWLINE) Line++, iterator_begin++;
-                    else return;
+                    if(iterator_begin->first == Lexer::NEWLINE) Return.second++, iterator_begin++;
+                    else return Return;
                 }
 
                 bool successful = false;
                 for(const auto& visitor: this->visitorList){
-                    if(visitor->visitParser(*this)){
+                    pair<nlohmann::json, bool> tmp;
+
+                    if((tmp = visitor->visitParser(*this)).second){
                         successful = true;
+                        Return.first.push_back(tmp.first);
                         break;
                     }
                 }
                 if(!successful){
-                    cerr << "Parsing error in line " << Line << ";\n";
+                    cerr << "Parsing error in line " << Return.second << ";\n";
                     exit(-12);
                 }
             }
+            return Return;
+        }
+        void STDParser::acceptAll(){
+            this->parsingData = std::move(acceptAllReturn().first);
         }
 
         list<pair<Lexer::LexiconType, string>>::iterator& STDParser::begin(){
@@ -56,7 +63,8 @@ namespace RT{
             }
         }
 
-        bool ImportToken::visitParser(STDParser& parser){
+        pair<nlohmann::json, bool> ImportToken::visitParser(STDParser& parser){
+            auto backup = parser.begin();
             if(parser.begin()->first == Lexer::KEYWORD && parser.begin()->second == "import"){
                 parser.begin()++;
                 nlohmann::json data {{"type", "import"}, {"namespaces", {}}};
@@ -64,13 +72,14 @@ namespace RT{
                     data["namespaces"].push_back(parser.begin()->second);
                     parser.begin()++;
                 }
-                if(parser.begin()->second != ";")
-                    return false;
+                if(parser.begin()->second != ";"){
+                    parser.begin() = backup;
+                    return pair(nlohmann::json(), false);
+                }
                 parser.begin()++;
-                ((nlohmann::json&)parser).push_back(data);
-                return true;
+                return pair(data, true);
             }
-            return false;
+            return pair(nlohmann::json(), false);
         }
     }
 }

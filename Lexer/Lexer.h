@@ -32,9 +32,9 @@ namespace RT{
             EOC
         };
 
-        class LexerInstance{
+        class LexerInterface{
         public:
-            LexerInstance(string::iterator iterator_begin, string::iterator iterator_end);
+            LexerInterface(string::iterator iterator_begin, string::iterator iterator_end);
             void setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector);
 
             virtual void acceptAll() = 0;
@@ -58,7 +58,7 @@ namespace RT{
 
             vector<shared_ptr<AnalyzerVisitor>> visitorList;
         };
-        class STDLexer : public LexerInstance{
+        class STDLexer : public LexerInterface{
         public:
             STDLexer(string::iterator iterator_begin, string::iterator iterator_end);
 

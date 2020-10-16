@@ -11,11 +11,12 @@ namespace RT{
     namespace Parser{
         class AnalyzerVisitor;
 
-        class ParserInstance{
+        class ParserInterface{
         public:
-            ParserInstance(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end);
+            ParserInterface(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end);
             void setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector);
 
+            virtual pair<nlohmann::json, int> acceptAllReturn() = 0;
             virtual void acceptAll() = 0;
 
             virtual list<pair<Lexer::LexiconType, string>>::iterator& begin() = 0;
@@ -35,10 +36,11 @@ namespace RT{
             vector<shared_ptr<AnalyzerVisitor>> visitorList;
         };
 
-        class STDParser : public ParserInstance{
+        class STDParser : public ParserInterface{
         public:
             STDParser(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end);
 
+            pair<nlohmann::json, int> acceptAllReturn() override;
             void acceptAll() override;
 
             list<pair<Lexer::LexiconType, string>>::iterator& begin() override;
@@ -54,11 +56,11 @@ namespace RT{
 
         class AnalyzerVisitor{
         public:
-            virtual bool visitParser(STDParser& parser) = 0;
+            virtual pair<nlohmann::json, bool> visitParser(STDParser& parser) = 0;
         };
 
         class ImportToken : public AnalyzerVisitor{
-            bool visitParser(STDParser& parser) override;
+            pair<nlohmann::json, bool> visitParser(STDParser& parser) override;
         };
 
     }

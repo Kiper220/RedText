@@ -90,11 +90,11 @@ namespace RT{
             return iterator+i;
         }
 
-        LexerInstance::LexerInstance(string::iterator iterator_begin, string::iterator iterator_end): iterator_begin(move(iterator_begin)), iterator_end(move(iterator_end)) {}
-        void LexerInstance::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector) {
+        LexerInterface::LexerInterface(string::iterator iterator_begin, string::iterator iterator_end): iterator_begin(move(iterator_begin)), iterator_end(move(iterator_end)) {}
+        void LexerInterface::setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector) {
             this->visitorList = move(visitorVector);
         }
-        STDLexer::STDLexer(string::iterator iterator_begin, string::iterator iterator_end): LexerInstance(iterator_begin, iterator_end) {}
+        STDLexer::STDLexer(string::iterator iterator_begin, string::iterator iterator_end): LexerInterface(iterator_begin, iterator_end) {}
         void STDLexer::accept(AnalyzerVisitor& visitor) {
             if(this->iterator_begin < this->iterator_end){
                 visitor.visitLexer(*this);
@@ -277,16 +277,16 @@ namespace RT{
             return false;
         }
         bool WysiwygString::visitLexer(STDLexer& lexer){
-
+            return false;
         }
         bool WysiwygCharacter::visitLexer(STDLexer& lexer){
-
+            return false;
         }
         bool HexString::visitLexer(STDLexer& lexer){
-
+            return false;
         }
         bool HexCharacter::visitLexer(STDLexer& lexer){
-
+            return false;
         }
         bool Operator::visitLexer(STDLexer& lexer){
             if(!((*lexer.begin() >= 'A' && *lexer.begin() <= 'Z') ||
