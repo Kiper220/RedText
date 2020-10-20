@@ -32,7 +32,6 @@ int main() {
 
     parser.setVisitorList(
                 {
-                    shared_ptr<Parser::AnalyzerVisitor>(new Parser::ImportToken)
                 }
             );
     parser.acceptAll();
