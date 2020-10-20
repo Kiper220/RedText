@@ -63,23 +63,5 @@ namespace RT{
             }
         }
 
-        pair<nlohmann::json, bool> ImportToken::visitParser(STDParser& parser){
-            auto backup = parser.begin();
-            if(parser.begin()->first == Lexer::KEYWORD && parser.begin()->second == "import"){
-                parser.begin()++;
-                nlohmann::json data {{"type", "import"}, {"namespaces", {}}};
-                while(parser.begin()->first == Lexer::SYMWORD) {
-                    data["namespaces"].push_back(parser.begin()->second);
-                    parser.begin()++;
-                }
-                if(parser.begin()->second != ";"){
-                    parser.begin() = backup;
-                    return pair(nlohmann::json(), false);
-                }
-                parser.begin()++;
-                return pair(data, true);
-            }
-            return pair(nlohmann::json(), false);
-        }
     }
 }
