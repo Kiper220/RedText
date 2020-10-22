@@ -62,6 +62,7 @@ namespace RT{
                 visitor.visitParser(*this);
             }
         }
+        /*
 
         pair<nlohmann::json, bool> Module::visitParser(STDParser &parser) {
             return pair<nlohmann::json, bool>();
@@ -1662,5 +1663,6 @@ namespace RT{
         pair<nlohmann::json, bool> TypeNull::visitParser(STDParser &parser) {
             return pair<nlohmann::json, bool>();
         }
+        */
     }
 }

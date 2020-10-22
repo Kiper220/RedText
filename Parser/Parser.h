@@ -53,11 +53,13 @@ namespace RT{
 
             void accept(AnalyzerVisitor& visitor) override;
         };
-
+        
         class AnalyzerVisitor{
         public:
             virtual pair<nlohmann::json, bool> visitParser(STDParser& parser) = 0;
         };
+
+        /*
 
         class Module: public AnalyzerVisitor{
         public:
@@ -1691,6 +1693,7 @@ namespace RT{
         public:
             pair<nlohmann::json, bool> visitParser(STDParser& parser) override;
         };
+    */
     }
 }
 
