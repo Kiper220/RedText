@@ -28,15 +28,6 @@ int main() {
             });
     lexer.acceptAll();
 
-    Parser::STDParser parser(lexer.getData().begin(), lexer.getData().end());
-
-    parser.setVisitorList(
-                {
-                }
-            );
-    parser.acceptAll();
-
-    std::cout << (string)parser;
 
     return 0;
 }

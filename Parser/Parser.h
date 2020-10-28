@@ -2,62 +2,106 @@
 // Created by kiper220 on 09.10.2020.
 //
 
-#ifndef REDTEXT_PARSER_H
-#define REDTEXT_PARSER_H
 #include <nlohmann/json.hpp>
 #include <Lexer.h>
 
 namespace RT{
     namespace Parser{
-        class AnalyzerVisitor;
+        class ParserSubprogram;
+        class ParserInputInstance;
+        class ParserSubprogram;
+        class ParserUtilInstance;
+        class ParserOutputInstance;
 
-        class ParserInterface{
+#ifndef REDTEXT_PARSER_H
+#define REDTEXT_PARSER_H
+
+        //////////////////////////////////////////// Интерфейсы, патерн Анализатор ////////////////////////////////////////////
+
+        class ParserInputInstance{                                                                                      // Класс интерфейс для интерфейса передачи данных парсеру
         public:
-            ParserInterface(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end);
-            void setVisitorList(vector<shared_ptr<AnalyzerVisitor>> visitorVector);
+            virtual vector<pair<Lexer::LexiconType, string>>& get() = 0;
 
-            virtual pair<nlohmann::json, int> acceptAllReturn() = 0;
-            virtual void acceptAll() = 0;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& begin() = 0;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& end() = 0;
 
-            virtual list<pair<Lexer::LexiconType, string>>::iterator& begin() = 0;
-            virtual list<pair<Lexer::LexiconType, string>>::iterator& end() = 0;
-
-            virtual explicit operator string() = 0;
-            virtual explicit operator nlohmann::json&() = 0;
-
-        protected:
-            virtual void accept(AnalyzerVisitor& visitor) = 0;
-
-            nlohmann::json parsingData;
-
-            list<pair<Lexer::LexiconType, string>>::iterator iterator_begin;
-            list<pair<Lexer::LexiconType, string>>::iterator iterator_end;
-
-            vector<shared_ptr<AnalyzerVisitor>> visitorList;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& rbegin() = 0;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& rend() = 0;
         };
 
-        class STDParser : public ParserInterface{
-        public:
-            STDParser(list<pair<Lexer::LexiconType, string>>::iterator iterator_begin, list<pair<Lexer::LexiconType, string>>::iterator iterator_end);
+        class ParserInstance{                                                                                           // Класс интерфейс логики обработки интерфейса поступаеммых данных, подпрограмм и интерфейса вывода
+            virtual bool setParserInput(ParserInputInstance) = 0;
+            virtual ParserOutputInstance getParserOutput() = 0;
 
-            pair<nlohmann::json, int> acceptAllReturn() override;
-            void acceptAll() override;
+            virtual bool setSubprogramsList(vector<ParserSubprogram*>) = 0;
+            virtual vector<ParserSubprogram*>& getSubprogramsList() = 0;
 
-            list<pair<Lexer::LexiconType, string>>::iterator& begin() override;
-            list<pair<Lexer::LexiconType, string>>::iterator& end() override;
+            virtual bool Analyze() = 0;
 
-            explicit operator string() override;
-            explicit operator nlohmann::json&() override;
-
-        protected:
-
-            void accept(AnalyzerVisitor& visitor) override;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& dataBegin() = 0;
+            virtual vector<pair<Lexer::LexiconType, string>>::iterator& dataEnd() = 0;
         };
-        
-        class AnalyzerVisitor{
-        public:
-            virtual pair<nlohmann::json, bool> visitParser(STDParser& parser) = 0;
+
+        class ParserSubprogramInstance{                                                                                 // Класс интерфейса подпрограммы, отвечающий за один из типов токенов, для нахождения которых используется список утилит
+            virtual bool setParserUtilites(vector<vector<ParserUtilInstance*>>) = 0;
+            virtual bool isCompliance(ParserInstance&) = 0;
+            virtual pair<bool, nlohmann::json> Accomplishment(ParserInstance&) = 0;
         };
+        class ParserUtilInstance{                                                                                       // Класс интерфейса утилиты подпрограммы, говорящий, является ли указанный токен соответствующим и подготавивает токен для обработки подпрограммой
+            virtual bool isCompliance(vector<pair<Lexer::LexiconType, string>>::iterator&) = 0;
+            virtual pair<bool, nlohmann::json> Accomplishment(vector<pair<Lexer::LexiconType, string>>::iterator&) = 0;
+        };
+
+        class ParserOutputInstance {                                                                                    // Класс интерфейса получения данных из парсера
+            virtual bool set(nlohmann::json) = 0;
+        };
+
+        //////////////////////////////////////////// Классы парсера языка RedText, патерн Анализатор ////////////////////////////////////////////
+
+        class RedTextParserInput: public ParserInputInstance{                                                           // Реализация класса передачи данных парсеру языка RedText
+        public:
+            RedTextParserInput(vector<pair<Lexer::LexiconType, string>>);
+            RedTextParserInput(RedTextParserInput& stdParserInput);
+
+            vector<pair<Lexer::LexiconType, string>>& get() override;
+
+            vector<pair<Lexer::LexiconType, string>>::iterator& begin() override;
+            vector<pair<Lexer::LexiconType, string>>::iterator& end() override;
+
+            vector<pair<Lexer::LexiconType, string>>::iterator& rbegin() override;
+            vector<pair<Lexer::LexiconType, string>>::iterator& rend() override;
+
+        private:
+            vector<pair<Lexer::LexiconType, string>> ParserInputData;
+        };
+
+        class RedTextParserOutput: public ParserOutputInstance {                                                        // Реализация класса получения данных от парсера языка RedText
+            bool set(nlohmann::json) override;
+            nlohmann::json&& get();
+
+        private:
+            nlohmann::json OutputData;
+        };
+
+        class RedTextParser: public ParserInstance{                                                                     // Реализация класса парсера языка RedText
+        public:
+            RedTextParser();
+            RedTextParser(RedTextParser& stdParser);
+
+            bool setParserInput(ParserInputInstance parserInputInstance) override;
+            bool setSubprogramsList(vector<ParserSubprogram*>) override;
+            vector<ParserSubprogram*>& getSubprogramsList() override;
+
+            bool Analyze() override;
+
+            vector<pair<Lexer::LexiconType, string>>::iterator& dataBegin() override;
+            vector<pair<Lexer::LexiconType, string>>::iterator& dataEnd() override;
+
+        private:
+            RedTextParserInput parserInput;
+            RedTextParserOutput parserOutput;
+        };
+
 
         /*
 
