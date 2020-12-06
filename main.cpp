@@ -7,27 +7,7 @@ using namespace std;
 using namespace RT;
 
 int main() {
-    string code =
-
-            "import io;\n"
-            "import test;";
-
-    Lexer::STDLexer lexer(string::iterator(code.begin()), string::iterator(code.end()));
-    lexer.setVisitorList(
-            {
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::IntegerLiteral),
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::KeyWord),
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::StringLiteral),
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::CharacterLiteral),
-                    //shared_ptr<Lexer::AnalyzerVisitor>(new HexString),
-                    //shared_ptr<Lexer::AnalyzerVisitor>(new WysiwygString),
-                    //shared_ptr<Lexer::AnalyzerVisitor>(new WysiwygCharacter),
-                    //shared_ptr<Lexer::AnalyzerVisitor>(new HexCharacter),
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::Operator),
-                    shared_ptr<Lexer::AnalyzerVisitor>(new Lexer::Comments),
-            });
-    lexer.acceptAll();
-
+    std::cout << (string)Lexer::LexiconData("test", RT::Lexer::LexiconData::STRING_LITERAL, 15, 23);
 
     return 0;
 }

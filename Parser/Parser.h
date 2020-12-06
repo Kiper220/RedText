@@ -4,7 +4,7 @@
 
 #include <nlohmann/json.hpp>
 #include <Lexer.h>
-
+/*
 namespace RT{
     namespace Parser{
         class ParserSubprogram;
@@ -30,8 +30,8 @@ namespace RT{
         };
 
         class ParserInstance{                                                                                           // Класс интерфейс логики обработки интерфейса поступаеммых данных, подпрограмм и интерфейса вывода
-            virtual bool setParserInput(ParserInputInstance) = 0;
-            virtual ParserOutputInstance getParserOutput() = 0;
+            virtual bool setParserInput(ParserInputInstance*) = 0;
+            virtual ParserOutputInstance* getParserOutput() = 0;
 
             virtual bool setSubprogramsList(vector<ParserSubprogram*>) = 0;
             virtual vector<ParserSubprogram*>& getSubprogramsList() = 0;
@@ -88,7 +88,7 @@ namespace RT{
             RedTextParser();
             RedTextParser(RedTextParser& stdParser);
 
-            bool setParserInput(ParserInputInstance parserInputInstance) override;
+            bool setParserInput(ParserInputInstance *parserInputInstance) override;
             bool setSubprogramsList(vector<ParserSubprogram*>) override;
             vector<ParserSubprogram*>& getSubprogramsList() override;
 
@@ -103,7 +103,7 @@ namespace RT{
         };
 
 
-        /*
+
 
         class Module: public AnalyzerVisitor{
         public:
@@ -1737,8 +1737,9 @@ namespace RT{
         public:
             pair<nlohmann::json, bool> visitParser(STDParser& parser) override;
         };
-    */
+
     }
 }
 
 #endif //REDTEXT_PARSER_H
+*/
