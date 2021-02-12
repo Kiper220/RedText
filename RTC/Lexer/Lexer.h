@@ -120,7 +120,7 @@ namespace RT::Lexer{
         virtual bool                    CheckSimilarity(LexerInterface& lexerInstance) = 0;
         /**
          * \brief Возвращает данные лексикона..
-         * \returns first - true, если данные получить удалось, иначе несоответствие, second - возвращаемые данные.
+         * \returns first - true, если данные получить удалось, иначе несоответствие, second - возвращаемые данные. Смещение применяется, если лексикон получить удалось
          */
         virtual pair<bool, LexiconData> GetLexicon(LexerInterface& lexerInstance) = 0;
     };
@@ -160,7 +160,12 @@ namespace RT::Lexer{
          */
         virtual pair<bool, string>  LexingAllCode() = 0;
 
-    private:
+        /**
+         * \brief Стандартный деструктор. Вызывает оператор delete для каждого лексикона, если deleteOnEnd равен true
+         */
+         ~LexerInterface();
+
+    protected:
 
         /**
          *  \brief Класс просмотра строки.
@@ -174,6 +179,56 @@ namespace RT::Lexer{
          *  \brief Переменная условия удаления данных
          */
         bool deleteOnEnd = false;
+    };
+
+    /**
+     * \brief Класс RedText лексера.
+     * \details Данный класс является лексером языка программирования RedText.
+     */
+    class RedTextLexer : public LexerInterface{
+    private:
+        RedTextLexer() = default;
+    public:
+        /**
+         * \brief Стандартный конструктор
+         * \warning СТРОКА, НА КОТОРУЮ ВЫ ССЫЛАЕТЕСЬ ДОЛЖНА СУЩЕСТВОВАТЬ, ПОКА ОНА НЕ ПРОШЛА ОПЕРАЦИЮ ЛЕКСИРОВАНИЯ
+         */
+        RedTextLexer(string& string1);
+
+        /**
+         * \brief Вызывает цикл лексического анализа кода
+         * \return \с first - вернёт true, если закончилось без ошибок, иначе false.
+         * \return \c second - строка со всеми ошибками лексического анализа.
+         */
+        pair<bool, string>  LexingAllCode() override;
+
+        /**
+         * \brief Гетер списка токенов, после синтаксического анализа
+         * \return Возвращает сыллку на вектор токенов
+         */
+         std::vector<LexiconData>& GetTokens();
+
+    private:
+        std::vector<LexiconData> tokens;
+    };
+
+
+    /**
+     * \brief Класс интерфейса лексикон.
+     * \details Этот класс создаёт интерфейс для дочерних классов лексон. Используется при обработке в лексическом анализаторе.
+     */
+    class RedText_KeySym_Lexicon : LexiconInterface{
+    public:
+        /**
+         * \brief Метод проверки совместимости лексикона по первому символу.
+         * \return Возвращает true, если первый симвл совместим с данным лексиконом.
+         */
+        bool                            CheckSimilarity(LexerInterface& lexerInstance) override;
+        /**
+         * \brief Возвращает данные лексикона..
+         * \returns first - true, если данные получить удалось, иначе несоответствие, second - возвращаемые данные. Смещение применяется, если лексикон получить удалось
+         */
+        virtual pair<bool, LexiconData> GetLexicon(LexerInterface& lexerInstance) override;
     };
 }
 
