@@ -20,13 +20,13 @@ namespace RT{
 
         class ParserInputInstance{                                                                                      // Класс интерфейс для интерфейса передачи данных парсеру
         public:
-            virtual vector<pair<Lexer::LexiconType, string>>& get() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>& get() = 0;
 
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& begin() = 0;
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& end() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& begin() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& end() = 0;
 
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& rbegin() = 0;
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& rend() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& rbegin() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& rend() = 0;
         };
 
         class ParserInstance{                                                                                           // Класс интерфейс логики обработки интерфейса поступаеммых данных, подпрограмм и интерфейса вывода
@@ -38,8 +38,8 @@ namespace RT{
 
             virtual bool Analyze() = 0;
 
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& dataBegin() = 0;
-            virtual vector<pair<Lexer::LexiconType, string>>::iterator& dataEnd() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& dataBegin() = 0;
+            virtual vector<pair<InterfaceLexer::LexiconType, string>>::iterator& dataEnd() = 0;
         };
 
         class ParserSubprogramInstance{                                                                                 // Класс интерфейса подпрограммы, отвечающий за один из типов токенов, для нахождения которых используется список утилит
@@ -48,8 +48,8 @@ namespace RT{
             virtual pair<bool, nlohmann::json> Accomplishment(ParserInstance&) = 0;
         };
         class ParserUtilInstance{                                                                                       // Класс интерфейса утилиты подпрограммы, говорящий, является ли указанный токен соответствующим и подготавивает токен для обработки подпрограммой
-            virtual bool isCompliance(vector<pair<Lexer::LexiconType, string>>::iterator&) = 0;
-            virtual pair<bool, nlohmann::json> Accomplishment(vector<pair<Lexer::LexiconType, string>>::iterator&) = 0;
+            virtual bool isCompliance(vector<pair<InterfaceLexer::LexiconType, string>>::iterator&) = 0;
+            virtual pair<bool, nlohmann::json> Accomplishment(vector<pair<InterfaceLexer::LexiconType, string>>::iterator&) = 0;
         };
 
         class ParserOutputInstance {                                                                                    // Класс интерфейса получения данных из парсера
@@ -60,19 +60,19 @@ namespace RT{
 
         class RedTextParserInput: public ParserInputInstance{                                                           // Реализация класса передачи данных парсеру языка RedText
         public:
-            RedTextParserInput(vector<pair<Lexer::LexiconType, string>>);
+            RedTextParserInput(vector<pair<InterfaceLexer::LexiconType, string>>);
             RedTextParserInput(RedTextParserInput& stdParserInput);
 
-            vector<pair<Lexer::LexiconType, string>>& get() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>& get() override;
 
-            vector<pair<Lexer::LexiconType, string>>::iterator& begin() override;
-            vector<pair<Lexer::LexiconType, string>>::iterator& end() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& begin() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& end() override;
 
-            vector<pair<Lexer::LexiconType, string>>::iterator& rbegin() override;
-            vector<pair<Lexer::LexiconType, string>>::iterator& rend() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& rbegin() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& rend() override;
 
         private:
-            vector<pair<Lexer::LexiconType, string>> ParserInputData;
+            vector<pair<InterfaceLexer::LexiconType, string>> ParserInputData;
         };
 
         class RedTextParserOutput: public ParserOutputInstance {                                                        // Реализация класса получения данных от парсера языка RedText
@@ -94,8 +94,8 @@ namespace RT{
 
             bool Analyze() override;
 
-            vector<pair<Lexer::LexiconType, string>>::iterator& dataBegin() override;
-            vector<pair<Lexer::LexiconType, string>>::iterator& dataEnd() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& dataBegin() override;
+            vector<pair<InterfaceLexer::LexiconType, string>>::iterator& dataEnd() override;
 
         private:
             RedTextParserInput parserInput;
